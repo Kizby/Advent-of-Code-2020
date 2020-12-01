@@ -66,7 +66,7 @@ string slurp(ifstream& in) {
 vector<int64_t> map_to_num(const vector<string>& vec) {
 	vector<int64_t> result;
 	result.resize(vec.size());
-	transform(vec.begin(), vec.end(), result.begin(), [](const string& s) { return stoll(s); });
+	transform(vec.begin(), vec.end(), result.begin(), [](const string& s) { return s.empty() ? 0 : stoll(s); });
 	return result;
 }
 
@@ -100,9 +100,35 @@ unordered_map<T, int> histogram(C container) {
 }
 
 void day1() {
+	auto in = input("1");
+	auto nums = map_to_num(split(slurp(in)));
+	for (auto num : nums) {
+		for (auto num2 : nums) {
+			if (num == num2) {
+				continue;
+			}
+			if (num + num2 == 2020) {
+				cout << num * num2 << endl;
+			}
+			for (auto num3 : nums) {
+				if (num3 == num2 || num3 == num) {
+					continue;
+				}
+				if (num + num2 + num3 == 2020) {
+					cout << num * num2 * num3 << endl;
+				}
+			}
+		}
+	}
+}
 
+void day2() {
+	auto in = input("2");
+	for (const auto& line : split(slurp(in))) {
+
+	}
 }
 
 int main() {
-	day1();
+	day2();
 }
