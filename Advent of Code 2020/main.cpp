@@ -119,9 +119,20 @@ void copy(string s)
 	// Allocate a global memory object for the text. 
 	HGLOBAL hglbCopy = GlobalAlloc(GMEM_MOVEABLE,
 		(s.size() + 1) * sizeof(TCHAR));
+	if (hglbCopy == NULL) {
+		// failed to get memory
+		CloseClipboard();
+		return;
+	}
 
 	// Lock the handle and copy the text to the buffer. 
 	LPTSTR lptstrCopy = (LPTSTR)GlobalLock(hglbCopy);
+	if (lptstrCopy == NULL) {
+		// failed to lock memory
+		CloseClipboard();
+		return;
+	}
+
 	memcpy(lptstrCopy, s.c_str(), s.size() * sizeof(TCHAR));
 	lptstrCopy[s.size()] = '\0';
 	GlobalUnlock(hglbCopy);
