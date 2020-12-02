@@ -183,11 +183,38 @@ void day1() {
 
 void day2() {
 	auto in = input("2");
+	auto valid = 0;
+	auto valid2 = 0;
+	for (const auto& line : split(slurp(in))) {
+		int min = 0, max = 0;
+		auto tokens = split(line, " ");
+		min = stol(tokens[0]);
+		max = stol(tokens[0].substr(tokens[0].find('-') + 1));
+		char which = tokens[1][0];
+		int count = 0;
+		for (int i = 0; i < tokens[2].size(); ++i) {
+			if (tokens[2][i] == which) {
+				++count;
+			}
+		}
+		if (count >= min && count <= max) {
+			++valid;
+		}
+		if ((tokens[2][min - 1] == which) ^ (tokens[2][max - 1] == which)) {
+			++valid2;
+		}
+	}
+	report(valid);
+	report(valid2);
+}
+
+void day3() {
+	auto in = input("3");
 	for (const auto& line : split(slurp(in))) {
 
 	}
 }
 
 int main() {
-	day2();
+	day3();
 }
