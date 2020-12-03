@@ -238,34 +238,48 @@ T product(vector<T> vec) {
 	return result;
 }
 
+template<typename T>
+T gcd(T a, T b) {
+	if (a > b) {
+		return gcd(b, a);
+	}
+	if (a == 0) {
+		return b;
+	}
+	return gcd(b % a, a);
+}
+
+unordered_map<char, size_t> count_obstacles(size_t dx, size_t dy, const vector<cyclic_vector<char>> &field) {
+	{
+		auto divisor = gcd(dx, dy);
+		if (divisor > 1) {
+			return count_obstacles(dx / divisor, dy / divisor, field);
+		}
+	}
+	unordered_map<char, size_t> result;
+	for (size_t i = 0; i * dy < field.size(); ++i) {
+		++result[field[i * dy][i * dx]];
+	}
+	return result;
+}
+
 void day3() {
 	auto in = input("3");
-	vector<cyclic_vector<bool>> grid;
+	vector<cyclic_vector<char>> grid;
 	for (const auto& line : split(slurp(in))) {
-		cyclic_vector<bool> one;
+		cyclic_vector<char> one;
 		for (auto c : line) {
-			one.push_back(c == '#');
+			one.push_back(c);
 		}
 		grid.push_back(one);
 	}
-	vector<int64_t> counts = { 0, 0, 0, 0, 0 };
-	for (int i = 0; i < grid.size(); ++i) {
-		if (grid[i][i]) {
-			++counts[0];
-		}
-		if (grid[i][3*i]) {
-			++counts[1];
-		}
-		if (grid[i][5*i]) {
-			++counts[2];
-		}
-		if (grid[i][7*i]) {
-			++counts[3];
-		}
-		if (i%2 == 0 && grid[i][i/2]) {
-			++counts[4];
-		}
-	}
+	vector<size_t> counts = { 
+		count_obstacles(1, 1, grid)['#'],
+		count_obstacles(3, 1, grid)['#'],
+		count_obstacles(5, 1, grid)['#'],
+		count_obstacles(7, 1, grid)['#'],
+		count_obstacles(1, 2, grid)['#']
+	};
 	report(counts[1]);
 	report(product(counts));
 }
