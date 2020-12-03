@@ -17,10 +17,20 @@ extern "C" {
 using namespace std;
 using namespace httplib;
 
+// from https://stackoverflow.com/a/116083
+string slurp(ifstream& in) {
+	stringstream out;
+	while (in >> out.rdbuf());
+	string s = out.str();
+	auto last_non_whitespace = s.find_last_not_of("\n\r ");
+	return s.substr(0, last_non_whitespace + 1);
+}
+
 void fetch(string day, string where) {
+	ifstream session("session.txt");
 	Client cli("https://adventofcode.com");
 	cli.set_default_headers({
-		{"cookie", "session=REDACTED"}
+		{"cookie", "session=" + slurp(session)}
 		});
 	string path = "/" YEAR "/day/" + day + "/input";
 	if (auto res = cli.Get(path.c_str())) {
@@ -55,15 +65,6 @@ vector<string> split(const string& input, const string& regex = "\n") {
 		first{ input.begin(), input.end(), re, -1 },
 		last;
 	return { first, last };
-}
-
-// from https://stackoverflow.com/a/116083
-string slurp(ifstream& in) {
-	stringstream out;
-	while (in >> out.rdbuf());
-	string s = out.str();
-	auto last_non_whitespace = s.find_last_not_of("\n\r ");
-	return s.substr(0, last_non_whitespace + 1);
 }
 
 vector<int64_t> map_to_num(const vector<string>& vec) {
@@ -210,11 +211,53 @@ void day2() {
 
 void day3() {
 	auto in = input("3");
+	vector<vector<bool>> grid;
+	for (const auto& line : split(slurp(in))) {
+		vector<bool> one;
+		for (auto c : line) {
+			one.push_back(c == '#');
+		}
+		grid.push_back(one);
+	}
+	size_t pos = 0, pos3 = 0, pos5 = 0, pos7 = 0;
+	int64_t count = 0, count3 = 0, count5 = 0, count7 = 0, count2 = 0;
+	for (int i = 0; i < grid.size(); ++i) {
+		if (grid[i][pos % grid[i].size()]) {
+			++count;
+		}
+		if (grid[i][pos3 % grid[i].size()]) {
+			++count3;
+		}
+		if (grid[i][pos5 % grid[i].size()]) {
+			++count5;
+		}
+		if (grid[i][pos7 % grid[i].size()]) {
+			++count7;
+		}
+		if (i%2 == 0 && grid[i][i/2 % grid[i].size()]) {
+			++count2;
+		}
+		pos += 1;
+		pos3 += 3;
+		pos5 += 5;
+		pos7 += 7;
+	}
+	report(count3);
+	report(count);
+	report(count3);
+	report(count5);
+	report(count7);
+	report(count2);
+	report(count * count3 * count5 * count7 * count2);
+}
+
+void day4() {
+	auto in = input("4");
 	for (const auto& line : split(slurp(in))) {
 
 	}
 }
 
 int main() {
-	day3();
+	day4();
 }
