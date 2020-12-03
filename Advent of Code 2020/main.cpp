@@ -209,46 +209,65 @@ void day2() {
 	report(valid2);
 }
 
+template<typename T>
+class cyclic_vector : public vector<T> {
+public:
+	typename vector<T>::reference operator[](const size_t n) {
+		return vector<T>::operator[](n % vector<T>::size());
+	}
+	typename vector<T>::const_reference operator[](const size_t n) const {
+		return vector<T>::operator[](n % vector<T>::size());
+	}
+};
+
+template<typename T>
+T sum(vector<T> vec) {
+	T result = 0;
+	for (auto element : vec) {
+		result += element;
+	}
+	return result;
+}
+
+template<typename T>
+T product(vector<T> vec) {
+	T result = 1;
+	for (auto element : vec) {
+		result *= element;
+	}
+	return result;
+}
+
 void day3() {
 	auto in = input("3");
-	vector<vector<bool>> grid;
+	vector<cyclic_vector<bool>> grid;
 	for (const auto& line : split(slurp(in))) {
-		vector<bool> one;
+		cyclic_vector<bool> one;
 		for (auto c : line) {
 			one.push_back(c == '#');
 		}
 		grid.push_back(one);
 	}
-	size_t pos = 0, pos3 = 0, pos5 = 0, pos7 = 0;
-	int64_t count = 0, count3 = 0, count5 = 0, count7 = 0, count2 = 0;
+	vector<int64_t> counts = { 0, 0, 0, 0, 0 };
 	for (int i = 0; i < grid.size(); ++i) {
-		if (grid[i][pos % grid[i].size()]) {
-			++count;
+		if (grid[i][i]) {
+			++counts[0];
 		}
-		if (grid[i][pos3 % grid[i].size()]) {
-			++count3;
+		if (grid[i][3*i]) {
+			++counts[1];
 		}
-		if (grid[i][pos5 % grid[i].size()]) {
-			++count5;
+		if (grid[i][5*i]) {
+			++counts[2];
 		}
-		if (grid[i][pos7 % grid[i].size()]) {
-			++count7;
+		if (grid[i][7*i]) {
+			++counts[3];
 		}
-		if (i%2 == 0 && grid[i][i/2 % grid[i].size()]) {
-			++count2;
+		if (i%2 == 0 && grid[i][i/2]) {
+			++counts[4];
 		}
-		pos += 1;
-		pos3 += 3;
-		pos5 += 5;
-		pos7 += 7;
 	}
-	report(count3);
-	report(count);
-	report(count3);
-	report(count5);
-	report(count7);
-	report(count2);
-	report(count * count3 * count5 * count7 * count2);
+	report(counts[1]);
+	report(product(counts));
 }
 
 void day4() {
