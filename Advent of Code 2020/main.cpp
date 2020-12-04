@@ -284,13 +284,71 @@ void day3() {
 	report(product(counts));
 }
 
+unordered_map<string, string> process_batch(vector<string> lines) {
+	unordered_map<string, string> result;
+	for (const auto& line : lines) {
+		for (const auto& elem : split(line, " ")) {
+			result[elem.substr(0, elem.find(":"))] = elem.substr(elem.find(":") + 1);
+		}
+	}
+	return result;
+}
+
 void day4() {
 	auto in = input("4");
+	vector<string> lines;
+	vector<unordered_map<string, string>> passports;
+	for (const auto& line : split(slurp(in))) {
+		if (line.empty()) {
+			passports.push_back(process_batch(lines));
+			lines.clear();
+		}
+		else {
+			lines.push_back(line);
+		}
+	}
+	passports.push_back(process_batch(lines));
+	unordered_map<string, function<bool(string)>> fields{
+		{"byr", [](string s) {return s.size() == 4 && stol(s) >= 1920 && stol(s) <= 2002; }},
+		{"iyr", [](string s) {return s.size() == 4 && stol(s) >= 2010 && stol(s) <= 2020; }},
+		{"eyr", [](string s) {return s.size() == 4 && stol(s) >= 2020 && stol(s) <= 2030; }},
+		{"hgt", [](string s) {return s.find("cm") != -1 ? stol(s) >= 150 && stol(s) <= 193 : s.find("in") != -1 && stol(s) >= 59 && stol(s) <= 76; }},
+		{"hcl", [](string s) {return !s.empty() && regex_match(s, regex("#[0-9a-f]{6}")); }},
+		{"ecl", [](string s) {return set<string>{"amb", "blu", "brn", "gry", "grn", "hzl", "oth"}.count(s) == 1; }},
+		{"pid", [](string s) {return regex_match(s, regex("[0-9]{9}")); } } };
+	int valid_count = 0;
+	int valid_count2 = 0;
+	for (auto &passport : passports) {
+		bool valid = true, valid2 = true;;
+		for (auto field : fields) {
+			if (passport[field.first].empty()) {
+				valid = false;
+				valid2 = false;
+				break;
+			}
+			else if (!field.second(passport[field.first])) {
+				cout << field.first << passport[field.first] << endl;
+				valid2 = false;
+			}
+		}
+		if (valid) {
+			++valid_count;
+		}
+		if (valid2) {
+			++valid_count2;
+		}
+	}
+	report(valid_count);
+	report(valid_count2);
+}
+
+void day5() {
+	auto in = input("5");
 	for (const auto& line : split(slurp(in))) {
 
 	}
 }
 
 int main() {
-	day4();
+	day5();
 }
