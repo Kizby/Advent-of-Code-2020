@@ -221,6 +221,25 @@ public:
 };
 
 template<typename T>
+class lazy_vector : public vector<T> {
+public:
+	lazy_vector() {}
+	lazy_vector(const vector<T>& source) : vector<T>(source) {}
+	typename vector<T>::reference operator[](const size_t n) {
+		if (n >= vector<T>::size()) {
+			vector<T>::resize(n + 1);
+		}
+		return vector<T>::operator[](n);
+	}
+	typename vector<T>::const_reference operator[](const size_t n) const {
+		if (n >= vector<T>::size()) {
+			vector<T>::resize(n + 1);
+		}
+		return vector<T>::operator[](n);
+	}
+};
+
+template<typename T>
 T sum(vector<T> vec) {
 	T result = 0;
 	for (auto element : vec) {
@@ -367,6 +386,77 @@ void day4() {
 	report(valid_count);
 	report(valid_count2);
 }
+
+class computer {
+public:
+	computer(const vector<int64_t>& program, bool von_neumann) : program(von_neumann ? memory : program_memory) {
+		this->program = program;
+	}
+	void attach_input(int64_t which, unique_ptr<istream> &&input) {
+		inputs[which] = move(input);
+	}
+	void attach_input(unique_ptr<istream> &&input) {
+		attach_input(0, move(input));
+	}
+	void attach_output(int64_t which, unique_ptr<ostream> &&output) {
+		outputs[which] = move(output);
+	}
+	void attach_output(unique_ptr<ostream> &&output) {
+		attach_output(0, move(output));
+	}
+	void execute() {
+		while (!stop) {
+			const auto &op = ops[program[ip++]];
+			vector<int64_t> args;
+			for (auto i = 0; i < op.arg_count; ++i) {
+				args.push_back(program[ip++]);
+			}
+			op.handle(*this, args);
+		}
+	}
+private:
+	int64_t read() {
+		int64_t result;
+		*inputs[0] >> result;
+		return result;
+	}
+	void write(int64_t what) {
+		*outputs[0] << what;
+	}
+
+	struct descriptor {
+		int arg_count;
+		function<void(computer&, vector<int64_t>)> handle;
+	};
+	static unordered_map<int64_t, descriptor> ops;
+
+	unordered_map<int64_t, unique_ptr<istream>> inputs;
+	unordered_map<int64_t, unique_ptr<ostream>> outputs;
+	unordered_map<int64_t, int64_t> registers;
+	lazy_vector<int64_t> program_memory;
+	lazy_vector<int64_t> memory;
+	lazy_vector<int64_t>& program;
+	size_t ip = 0;
+	bool stop = false;
+};
+
+unordered_map<int64_t, computer::descriptor> computer::ops{
+	{-1, {0, [](computer& self, vector<int64_t> args) {self.stop = true; }}}, // HALT
+	{ 0, {3, [](computer& self, vector<int64_t> args) {self.registers[args[2]] = self.registers[args[0]] + self.registers[args[1]]; }}}, // ADD
+	{ 1, {3, [](computer& self, vector<int64_t> args) {self.registers[args[2]] = self.registers[args[0]] - self.registers[args[1]]; }}}, // SUBTRACT
+	{ 2, {3, [](computer& self, vector<int64_t> args) {self.registers[args[2]] = self.registers[args[0]] * self.registers[args[1]]; }}}, // MULTIPLY
+	{ 3, {3, [](computer& self, vector<int64_t> args) {self.registers[args[2]] = self.registers[args[0]] / self.registers[args[1]]; }}}, // DIVIDE
+	{ 4, {3, [](computer& self, vector<int64_t> args) {self.registers[args[2]] = self.registers[args[0]] % self.registers[args[1]]; }}}, // MODULUS
+	{ 5, {2, [](computer& self, vector<int64_t> args) {self.registers[args[1]] = -self.registers[args[0]]; }}}, // NEGATE
+	{ 6, {2, [](computer& self, vector<int64_t> args) {self.memory[args[1]] = self.registers[args[0]]; }}}, // STORE
+	{ 7, {2, [](computer& self, vector<int64_t> args) {self.registers[args[1]] = self.memory[args[0]]; }}}, // LOAD
+	{ 8, {1, [](computer& self, vector<int64_t> args) {self.registers[args[0]] = self.read(); }}}, // READ
+	{ 9, {1, [](computer& self, vector<int64_t> args) {self.write(self.registers[args[0]]); }}}, // WRITE
+	{10, {1, [](computer& self, vector<int64_t> args) {self.ip = args[0]; }}}, // JUMP
+	{11, {2, [](computer& self, vector<int64_t> args) {if (self.registers[args[0]] < 0) self.ip = args[1]; }}}, // JUMP-IF-NEGATIVE
+	{12, {2, [](computer& self, vector<int64_t> args) {if (self.registers[args[0]] > 0) self.ip = args[1]; }}}, // JUMP-IF-POSITIVE
+	{13, {2, [](computer& self, vector<int64_t> args) {self.ip = self.registers[args[0]]; }}}, // INDIRECT-JUMP
+};
 
 void day5() {
 	auto in = input("5");
