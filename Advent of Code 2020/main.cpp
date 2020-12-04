@@ -294,6 +294,32 @@ unordered_map<string, string> process_batch(vector<string> lines) {
 	return result;
 }
 
+bool in_range(const string& s, int64_t min, int64_t max) {
+	size_t end = 0;
+	int64_t val = stoll(s, &end);
+	return val >= min && val <= max && end == s.size();
+}
+
+bool ends_with(const string& s, const string& what, string* rest = nullptr) {
+	if (what.size() > s.size() || s.substr(s.size() - what.size()) != what) {
+		return false;
+	}
+	if (rest) {
+		*rest = s.substr(0, s.size() - what.size());
+	}
+	return true;
+}
+
+bool starts_with(const string& s, const string& what, string* rest = nullptr) {
+	if (what.size() > s.size() || s.substr(0, what.size()) != what) {
+		return false;
+	}
+	if (rest) {
+		*rest = s.substr(what.size());
+	}
+	return true;
+}
+
 void day4() {
 	auto in = input("4");
 	vector<string> lines;
@@ -309,11 +335,11 @@ void day4() {
 	}
 	passports.push_back(process_batch(lines));
 	unordered_map<string, function<bool(string)>> fields{
-		{"byr", [](string s) {return s.size() == 4 && stol(s) >= 1920 && stol(s) <= 2002; }},
-		{"iyr", [](string s) {return s.size() == 4 && stol(s) >= 2010 && stol(s) <= 2020; }},
-		{"eyr", [](string s) {return s.size() == 4 && stol(s) >= 2020 && stol(s) <= 2030; }},
-		{"hgt", [](string s) {return s.find("cm") != -1 ? stol(s) >= 150 && stol(s) <= 193 : s.find("in") != -1 && stol(s) >= 59 && stol(s) <= 76; }},
-		{"hcl", [](string s) {return !s.empty() && regex_match(s, regex("#[0-9a-f]{6}")); }},
+		{"byr", [](string s) {return in_range(s, 1920, 2002); }},
+		{"iyr", [](string s) {return in_range(s, 2010, 2020); }},
+		{"eyr", [](string s) {return in_range(s, 2020, 2030); }},
+		{"hgt", [](string s) {return ends_with(s, "cm", &s) && in_range(s, 150, 193) || ends_with(s, "in", &s) && in_range(s, 59, 76); }},
+		{"hcl", [](string s) {return regex_match(s, regex("#[0-9a-f]{6}")); }},
 		{"ecl", [](string s) {return set<string>{"amb", "blu", "brn", "gry", "grn", "hzl", "oth"}.count(s) == 1; }},
 		{"pid", [](string s) {return regex_match(s, regex("[0-9]{9}")); } } };
 	int valid_count = 0;
@@ -327,7 +353,7 @@ void day4() {
 				break;
 			}
 			else if (!field.second(passport[field.first])) {
-				cout << field.first << passport[field.first] << endl;
+				cout << "Invalid " << field.first << ":" << passport[field.first] << endl;
 				valid2 = false;
 			}
 		}
@@ -345,7 +371,7 @@ void day4() {
 void day5() {
 	auto in = input("5");
 	for (const auto& line : split(slurp(in))) {
-
+		
 	}
 }
 
