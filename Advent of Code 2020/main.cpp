@@ -460,11 +460,39 @@ unordered_map<int64_t, computer::descriptor> computer::ops{
 
 void day5() {
 	auto in = input("5");
+	int max = 0;
+	set<int> seats;
 	for (const auto& line : split(slurp(in))) {
-		
+		int result = 0;
+		for (auto c : line) {
+			result *= 2;
+			if (c == 'B' || c == 'R') {
+				++result;
+			}
+		}
+		seats.insert(result);
+		if (result > max) {
+			max = result;
+		}
+	}
+	report(max);
+	int last = -1;
+	for (auto n : seats) {
+		if (n - last == 2) {
+			report(n - 1);
+			break;
+		}
+		last = n;
+	}
+}
+
+void day6() {
+	auto in = input("6");
+	for (const auto& line : split(slurp(in))) {
+
 	}
 }
 
 int main() {
-	day5();
+	day6();
 }
