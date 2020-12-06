@@ -478,45 +478,81 @@ void day5() {
 	}
 }
 
-set<char> process_lines(vector<string> lines) {
-	set<char> result;
-	for (auto line : lines) {
-		for (auto c : line) {
-			result.insert(c);
+template<typename T>
+set<T> intersect(const vector<set<T>> &sets) {
+	set<T> result;
+	if (sets.empty()) {
+		return result;
+	}
+	result = sets[0];
+	for (size_t i = 1; i < sets.size(); ++i) {
+		set<T> next = result;
+		for (const auto &element : result) {
+			if (sets[i].count(element) == 0) {
+				next.erase(element);
+			}
+		}
+		result = next;
+	}
+	return result;
+}
+
+template<typename T, typename C>
+set<T> intersect(const vector<C>& inputs, function<set<T>(const C&)> map) {
+	vector<set<T>> sets;
+	for (const auto& c : inputs) {
+		sets.push_back(map(c));
+	}
+	return intersect(sets);
+}
+
+template<typename T>
+set<T> unionize(const vector<set<T>>& sets) {
+	set<T> result;
+	if (sets.empty()) {
+		return result;
+	}
+	result = sets[0];
+	for (size_t i = 1; i < sets.size(); ++i) {
+		for (const auto& element : sets[i]) {
+			result.insert(element);
 		}
 	}
 	return result;
 }
 
-set<char> intersect(vector<string> lines) {
-	set<char> result;
-	for (char c = 'a'; c <= 'z'; c++) {
-		result.insert(c);
+template<typename T, typename C>
+set<T> unionize(const vector<C>& inputs, function<set<T>(const C&)> map) {
+	vector<set<T>> sets;
+	for (const auto& c : inputs) {
+		sets.push_back(map(c));
 	}
-	for (auto line : lines) {
-		set<char> cur;
-		for (auto c : line) {
-			cur.insert(c);
-		}
-		set<char> sub;
-		for (auto c : result) {
-			if (cur.count(c) == 0) {
-				sub.insert(c);
-			}
-		}
-		for (auto c : sub) {
-			result.erase(c);
+	return unionize(sets);
+}
+
+template<typename T>
+set<T> difference(const set<T>& a, const set<T>& b) {
+	set<T> result = a;
+	for (const auto& element : a) {
+		if (b.count(element) > 0) {
+			result.erase(element);
 		}
 	}
 	return result;
+}
+
+template<typename T>
+set<T> sym_difference(const set<T>& a, const set<T>& b) {
+	return unionize<T>({ difference(a, b), difference(b, a) });
 }
 
 void day6() {
 	auto in = input("6");
 	vector<set<char>> answers, answers2;
+	auto string_to_set = [](const string& line) {return set<char>{line.begin(), line.end()}; };
 	for (const auto& lines : split(slurp(in), "\n\n")) {
-		answers.push_back(process_lines(split(lines)));
-		answers2.push_back(intersect(split(lines)));
+		answers.push_back(unionize<char, string>(split(lines), string_to_set));
+		answers2.push_back(intersect<char, string>(split(lines), string_to_set));
 	}
 	size_t result = 0;
 	for (auto a : answers) {
@@ -538,5 +574,5 @@ void day7() {
 }
 
 int main() {
-	day4();
+	day7();
 }
