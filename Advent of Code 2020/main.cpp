@@ -486,13 +486,74 @@ void day5() {
 	}
 }
 
+set<char> process_lines(vector<string> lines) {
+	set<char> result;
+	for (auto line : lines) {
+		for (auto c : line) {
+			result.insert(c);
+		}
+	}
+	return result;
+}
+
+set<char> intersect(vector<string> lines) {
+	set<char> result;
+	for (char c = 'a'; c <= 'z'; c++) {
+		result.insert(c);
+	}
+	for (auto line : lines) {
+		set<char> cur;
+		for (auto c : line) {
+			cur.insert(c);
+		}
+		set<char> sub;
+		for (auto c : result) {
+			if (cur.count(c) == 0) {
+				sub.insert(c);
+			}
+		}
+		for (auto c : sub) {
+			result.erase(c);
+		}
+	}
+	return result;
+}
+
 void day6() {
 	auto in = input("6");
+	vector<string> lines;
+	vector<set<char>> answers, answers2;
+	for (const auto& line : split(slurp(in))) {
+		if (line.empty()) {
+			answers.push_back(process_lines(lines));
+			answers2.push_back(intersect(lines));
+			lines.clear();
+		}
+		else {
+			lines.push_back(line);
+		}
+	}
+	answers.push_back(process_lines(lines));
+	answers2.push_back(intersect(lines));
+	size_t result = 0;
+	for (auto a : answers) {
+		result += a.size();
+	}
+	size_t result2 = 0;
+	for (auto a : answers2) {
+		result2 += a.size();
+	}
+	report(result);
+	report(result2);
+}
+
+void day7() {
+	auto in = input("7");
 	for (const auto& line : split(slurp(in))) {
 
 	}
 }
 
 int main() {
-	day6();
+	day7();
 }
