@@ -546,24 +546,38 @@ set<T> sym_difference(const set<T>& a, const set<T>& b) {
 	return unionize<T>({ difference(a, b), difference(b, a) });
 }
 
+template<typename T, typename C>
+T sum(const vector<C>& inputs, function<T(const C&)> map) {
+	vector<T> nums;
+	for (const auto& c : inputs) {
+		nums.push_back(map(c));
+	}
+	return sum(nums);
+}
+
+template<typename T, typename C>
+T product(const vector<C>& inputs, function<T(const C&)> map) {
+	vector<T> nums;
+	for (const auto& c : inputs) {
+		nums.push_back(map(c));
+	}
+	return product(nums);
+}
+
+template<typename T, typename C>
+set<T> into_set(const C& source) {
+	return set<T>{ source.begin(), source.end() };
+}
+
 void day6() {
 	auto in = input("6");
-	vector<set<char>> answers, answers2;
-	auto string_to_set = [](const string& line) {return set<char>{line.begin(), line.end()}; };
+	vector<set<char>> any_yes, all_yes;
 	for (const auto& lines : split(slurp(in), "\n\n")) {
-		answers.push_back(unionize<char, string>(split(lines), string_to_set));
-		answers2.push_back(intersect<char, string>(split(lines), string_to_set));
+		any_yes.push_back(unionize<char, string>(split(lines), into_set<char,string>));
+		all_yes.push_back(intersect<char, string>(split(lines), into_set<char,string>));
 	}
-	size_t result = 0;
-	for (auto a : answers) {
-		result += a.size();
-	}
-	size_t result2 = 0;
-	for (auto a : answers2) {
-		result2 += a.size();
-	}
-	report(result);
-	report(result2);
+	report(sum<size_t, set<char>>(any_yes, &set<char>::size));
+	report(sum<size_t, set<char>>(all_yes, &set<char>::size));
 }
 
 void day7() {
