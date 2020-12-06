@@ -341,18 +341,10 @@ bool starts_with(const string& s, const string& what, string* rest = nullptr) {
 
 void day4() {
 	auto in = input("4");
-	vector<string> lines;
 	vector<unordered_map<string, string>> passports;
-	for (const auto& line : split(slurp(in))) {
-		if (line.empty()) {
-			passports.push_back(process_batch(lines));
-			lines.clear();
-		}
-		else {
-			lines.push_back(line);
-		}
+	for (const auto& lines : split(slurp(in), "\n\n")) {
+		passports.push_back(process_batch(split(lines)));
 	}
-	passports.push_back(process_batch(lines));
 	unordered_map<string, function<bool(string)>> fields{
 		{"byr", [](string s) {return in_range(s, 1920, 2002); }},
 		{"iyr", [](string s) {return in_range(s, 2010, 2020); }},
@@ -521,20 +513,11 @@ set<char> intersect(vector<string> lines) {
 
 void day6() {
 	auto in = input("6");
-	vector<string> lines;
 	vector<set<char>> answers, answers2;
-	for (const auto& line : split(slurp(in))) {
-		if (line.empty()) {
-			answers.push_back(process_lines(lines));
-			answers2.push_back(intersect(lines));
-			lines.clear();
-		}
-		else {
-			lines.push_back(line);
-		}
+	for (const auto& lines : split(slurp(in), "\n\n")) {
+		answers.push_back(process_lines(split(lines)));
+		answers2.push_back(intersect(split(lines)));
 	}
-	answers.push_back(process_lines(lines));
-	answers2.push_back(intersect(lines));
 	size_t result = 0;
 	for (auto a : answers) {
 		result += a.size();
@@ -555,5 +538,5 @@ void day7() {
 }
 
 int main() {
-	day7();
+	day4();
 }
