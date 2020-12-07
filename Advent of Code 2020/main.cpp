@@ -154,7 +154,7 @@ template <typename T>
 void report(T n) {
 	report(to_string(n));
 }
-
+/*
 void day1() {
 	auto in = input("1");
 	auto nums = map_to_num(split(slurp(in)));
@@ -208,7 +208,7 @@ void day2() {
 	report(valid);
 	report(valid2);
 }
-
+*/
 template<typename T>
 class cyclic_vector : public vector<T> {
 public:
@@ -281,7 +281,7 @@ unordered_map<char, size_t> count_obstacles(size_t dx, size_t dy, const vector<c
 	}
 	return result;
 }
-
+/*
 void day3() {
 	auto in = input("3");
 	vector<cyclic_vector<char>> grid;
@@ -301,7 +301,7 @@ void day3() {
 	};
 	report(counts[1]);
 	report(product(counts));
-}
+}*/
 
 unordered_map<string, string> process_batch(vector<string> lines) {
 	unordered_map<string, string> result;
@@ -338,7 +338,7 @@ bool starts_with(const string& s, const string& what, string* rest = nullptr) {
 	}
 	return true;
 }
-
+/*
 void day4() {
 	auto in = input("4");
 	vector<unordered_map<string, string>> passports;
@@ -476,7 +476,7 @@ void day5() {
 		}
 		last = n;
 	}
-}
+}*/
 
 template<typename T>
 set<T> intersect(const vector<set<T>> &sets) {
@@ -568,7 +568,7 @@ template<typename T, typename C>
 set<T> into_set(const C& source) {
 	return set<T>{ source.begin(), source.end() };
 }
-
+/*
 void day6() {
 	auto in = input("6");
 	vector<set<char>> any_yes, all_yes;
@@ -579,7 +579,7 @@ void day6() {
 	report(sum<size_t, set<char>>(any_yes, &set<char>::size));
 	report(sum<size_t, set<char>>(all_yes, &set<char>::size));
 }
-
+*/
 void day7() {
 	auto in = input("7");
 	for (const auto& line : split(slurp(in))) {
