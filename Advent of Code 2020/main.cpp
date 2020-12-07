@@ -581,6 +581,30 @@ void day6() {
 }
 */
 
+template<typename T>
+class stack {
+public:
+	stack() : data() {}
+	stack(initializer_list<T> init) : data(init) { }
+
+	T pop() {
+		T result = data[data.size() - 1];
+		data.resize(data.size() - 1);
+		return result;
+	}
+	void push(T what) {
+		data.push_back(what);
+	}
+	size_t size() {
+		return data.size();
+	}
+	bool empty() {
+		return data.empty();
+	}
+private:
+	vector<T> data;
+};
+
 int64_t count(const string &name, map<string, map<string, int>>& rules, map<string, int64_t> &counts) {
 	if (counts[name] > -1) {
 		return counts[name];
@@ -596,6 +620,7 @@ int64_t count(const string &name, map<string, map<string, int>>& rules, map<stri
 void day7() {
 	auto in = input("7");
 	map<string, map<string, int>> rules;
+	map<string, set<string>> inverse;
 	for (const auto& line : split(slurp(in))) {
 		auto tokens = split(line, " ");
 		auto color = tokens[0] + " " + tokens[1];
@@ -603,42 +628,25 @@ void day7() {
 			continue;
 		}
 		for (int i = 4; i < tokens.size(); i += 4) {
-			rules[color][tokens[i + 1] + " " + tokens[i + 2]] = stol(tokens[i]);
+			auto inside = tokens[i + 1] + " " + tokens[i + 2];
+			rules[color][inside] = stol(tokens[i]);
+			inverse[inside].insert(color);
 		}
 	}
-	bool dirty = true;
-	set<string> candidates;
-	while (dirty) {
-		dirty = false;
-		for (auto entry : rules) {
-			if (entry.second["shiny gold"] >= 1) {
-				if (candidates.insert(entry.first).second) {
-					dirty = true;
-				}
-			}
-			for (auto candidate : candidates) {
-				if (entry.second[candidate] >= 1) {
-					if (candidates.insert(entry.first).second) {
-						dirty = true;
-					}
-				}
+	set<string> known;
+	stack<string> candidates{ "shiny gold" };
+	while (!candidates.empty()) {
+		auto candidate = candidates.pop();
+		if (known.insert(candidate).second) {
+			for (auto next : inverse[candidate]) {
+				candidates.push(next);
 			}
 		}
 	}
-	report(candidates.size());
+	report(known.size() - 1);
 	map<string, int64_t> counts;
 	for (auto entry : rules) {
 		counts[entry.first] = -1;
-	}
-	bool done = false;
-	while (!done) {
-		done = true;
-		for (auto entry : rules) {
-			if (counts[entry.first] == -1) {
-				done = false;
-				count(entry.first, rules, counts);
-			}
-		}
 	}
 	report(count("shiny gold", rules, counts));
 }
