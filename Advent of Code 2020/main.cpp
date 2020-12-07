@@ -6,6 +6,7 @@
 #include <string>
 #include <filesystem>
 #include <set>
+#include <deque>
 #include <sstream>
 #include <algorithm>
 extern "C" {
@@ -603,6 +604,30 @@ public:
 	}
 private:
 	vector<T> data;
+};
+
+template<typename T>
+class queue {
+public:
+	queue() : data() {}
+	queue(initializer_list<T> init) : data(init) { }
+
+	T pop() {
+		T result = data.front();
+		data.pop_front();
+		return result;
+	}
+	void push(T what) {
+		data.push_back(what);
+	}
+	size_t size() {
+		return data.size();
+	}
+	bool empty() {
+		return data.empty();
+	}
+private:
+	deque<T> data;
 };
 
 int64_t count(const string &name, map<string, map<string, int>>& rules, map<string, int64_t> &counts) {
