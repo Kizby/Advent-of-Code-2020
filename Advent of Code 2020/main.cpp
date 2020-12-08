@@ -62,10 +62,23 @@ ifstream input(string day) {
 vector<string> split(const string& input, const string& regex = "\n") {
 	// passing -1 as the submatch index parameter performs splitting
 	std::regex re(regex);
-	std::sregex_token_iterator
+	sregex_token_iterator
 		first{ input.begin(), input.end(), re, -1 },
 		last;
 	return { first, last };
+}
+
+vector<vector<string>> split(const vector<string>& input, const string& regex = "\n") {
+	// passing -1 as the submatch index parameter performs splitting
+	std::regex re(regex);
+	vector<vector<string>> result;
+	for (const auto& line : input) {
+		sregex_token_iterator
+			first{ line.begin(), line.end(), re, -1 },
+			last;
+		result.push_back({ first, last });
+	}
+	return result;
 }
 
 vector<int64_t> map_to_num(const vector<string>& vec) {
@@ -380,77 +393,6 @@ void day4() {
 	report(valid_count2);
 }
 
-class computer {
-public:
-	computer(const vector<int64_t>& program, bool von_neumann) : program(von_neumann ? memory : program_memory) {
-		this->program = program;
-	}
-	void attach_input(int64_t which, unique_ptr<istream> &&input) {
-		inputs[which] = move(input);
-	}
-	void attach_input(unique_ptr<istream> &&input) {
-		attach_input(0, move(input));
-	}
-	void attach_output(int64_t which, unique_ptr<ostream> &&output) {
-		outputs[which] = move(output);
-	}
-	void attach_output(unique_ptr<ostream> &&output) {
-		attach_output(0, move(output));
-	}
-	void execute() {
-		while (!stop) {
-			const auto &op = ops[program[ip++]];
-			vector<int64_t> args;
-			for (auto i = 0; i < op.arg_count; ++i) {
-				args.push_back(program[ip++]);
-			}
-			op.handle(*this, args);
-		}
-	}
-private:
-	int64_t read() {
-		int64_t result;
-		*inputs[0] >> result;
-		return result;
-	}
-	void write(int64_t what) {
-		*outputs[0] << what;
-	}
-
-	struct descriptor {
-		int arg_count;
-		function<void(computer&, vector<int64_t>)> handle;
-	};
-	static unordered_map<int64_t, descriptor> ops;
-
-	unordered_map<int64_t, unique_ptr<istream>> inputs;
-	unordered_map<int64_t, unique_ptr<ostream>> outputs;
-	unordered_map<int64_t, int64_t> registers;
-	lazy_vector<int64_t> program_memory;
-	lazy_vector<int64_t> memory;
-	lazy_vector<int64_t>& program;
-	size_t ip = 0;
-	bool stop = false;
-};
-
-unordered_map<int64_t, computer::descriptor> computer::ops{
-	{-1, {0, [](computer& self, vector<int64_t> args) {self.stop = true; }}}, // HALT
-	{ 0, {3, [](computer& self, vector<int64_t> args) {self.registers[args[2]] = self.registers[args[0]] + self.registers[args[1]]; }}}, // ADD
-	{ 1, {3, [](computer& self, vector<int64_t> args) {self.registers[args[2]] = self.registers[args[0]] - self.registers[args[1]]; }}}, // SUBTRACT
-	{ 2, {3, [](computer& self, vector<int64_t> args) {self.registers[args[2]] = self.registers[args[0]] * self.registers[args[1]]; }}}, // MULTIPLY
-	{ 3, {3, [](computer& self, vector<int64_t> args) {self.registers[args[2]] = self.registers[args[0]] / self.registers[args[1]]; }}}, // DIVIDE
-	{ 4, {3, [](computer& self, vector<int64_t> args) {self.registers[args[2]] = self.registers[args[0]] % self.registers[args[1]]; }}}, // MODULUS
-	{ 5, {2, [](computer& self, vector<int64_t> args) {self.registers[args[1]] = -self.registers[args[0]]; }}}, // NEGATE
-	{ 6, {2, [](computer& self, vector<int64_t> args) {self.memory[args[1]] = self.registers[args[0]]; }}}, // STORE
-	{ 7, {2, [](computer& self, vector<int64_t> args) {self.registers[args[1]] = self.memory[args[0]]; }}}, // LOAD
-	{ 8, {1, [](computer& self, vector<int64_t> args) {self.registers[args[0]] = self.read(); }}}, // READ
-	{ 9, {1, [](computer& self, vector<int64_t> args) {self.write(self.registers[args[0]]); }}}, // WRITE
-	{10, {1, [](computer& self, vector<int64_t> args) {self.ip = args[0]; }}}, // JUMP
-	{11, {2, [](computer& self, vector<int64_t> args) {if (self.registers[args[0]] < 0) self.ip = args[1]; }}}, // JUMP-IF-NEGATIVE
-	{12, {2, [](computer& self, vector<int64_t> args) {if (self.registers[args[0]] > 0) self.ip = args[1]; }}}, // JUMP-IF-POSITIVE
-	{13, {2, [](computer& self, vector<int64_t> args) {self.ip = self.registers[args[0]]; }}}, // INDIRECT-JUMP
-};
-
 void day5() {
 	auto in = input("5");
 	int max = 0;
@@ -676,69 +618,101 @@ void day7() {
 	report(count_day7("shiny gold", rules, counts));
 }*/
 
-void day8() {
-	auto in = input("8");
-	auto lines = split(slurp(in));
-	size_t ip = 0;
-	set<size_t> seen;
-	int64_t acc = 0;
-	while (seen.insert(ip).second) {
-		auto ins = split(lines[ip]," ");
-		if (ins[0] == "nop") {
-			++ip;
-			continue;
-		}
-		if (ins[0] == "acc") {
-			acc += stol(ins[1]);
-			++ip;
-			continue;
-		}
-		if (ins[0] == "jmp") {
-			ip += stol(ins[1]);
-			continue;
+class computer {
+public:
+	computer(const vector<string>& program) {
+		this->program = split(program, " ");
+	}
+	computer(const vector<vector<string>>& program) {
+		this->program = program;
+	}
+	void attach_input(int64_t which, queue<string> *input) {
+		inputs[which] = input;
+	}
+	void attach_input(queue<string> *input) {
+		attach_input(0, input);
+	}
+	void attach_output(int64_t which, queue<string> *output) {
+		outputs[which] = output;
+	}
+	void attach_output(queue<string> *output) {
+		attach_output(0, output);
+	}
+	void execute(function<bool()> condition) {
+		while (condition() && ip < program.size()) {
+			step();
 		}
 	}
+	void step() {
+		const auto& instruction = 
+			patches.count(ip) > 0 ?
+			patches[ip++] : program[ip++];
+		ops[instruction[0]](*this, instruction);
+	}
+	string read() {
+		return read(0);
+	}
+	string read(int64_t which) {
+		return inputs[which]->pop();
+	}
+	void write(string what) {
+		write(0, what);
+	}
+	void write(int64_t which, string what) {
+		if (!outputs[which]) {
+			outputs[which] = new queue<string>{};
+		}
+		outputs[which]->push(what);
+	}
+	void reset() {
+		patches.clear();
+		acc = 0;
+		ip = 0;
+	}
+
+	static unordered_map<string, function<void(computer&, const vector<string>&)>> ops;
+
+	unordered_map<int64_t, queue<string>*> inputs;
+	unordered_map<int64_t, queue<string>*> outputs;
+	int64_t acc = 0;
+	vector<vector<string>> program;
+	size_t ip = 0;
+	unordered_map<size_t, vector<string>> patches;
+};
+
+unordered_map<string, function<void(computer&, const vector<string>&)>> computer::ops{
+	{ "nop", [](computer& self, const vector<string>& args) { }},
+	{ "acc", [](computer& self, const vector<string>& args) {self.acc += stoll(args[1]); } },
+	{ "jmp", [](computer& self, const vector<string>& args) {self.ip += stoll(args[1]) - 1; }},
+};
+
+void day8() {
+	auto in = input("8");
+	const auto lines = split(slurp(in));
+	computer comp{ split(lines, " ") };
+	auto& program = comp.program;
+	set<size_t> seen;
+	auto& ip = comp.ip;
+	auto& acc = comp.acc;
+	const auto& condition = [&]() {return seen.insert(ip).second; };
+	comp.execute(condition);
 	report(acc);
-	for (size_t i = 0; i < lines.size(); ++i) {
-		auto ins = split(lines[i], " ");
+	for (size_t i = 0; i < program.size(); ++i) {
+		comp.reset();
+		auto& ins = program[i];
 		if (ins[0] == "nop") {
-			lines[i] = "jmp " + ins[1];
+			comp.patches.insert({ i, {"jmp", ins[1]} });
 		} else if (ins[0] == "jmp") {
-			lines[i] = "nop " + ins[1];
+			comp.patches.insert({ i, {"nop", ins[1]} });
 		}
 		else {
 			continue;
 		}
 		seen.clear();
-		ip = 0;
-		acc = 0;
-		while (seen.insert(ip).second && ip < lines.size()) {
-			auto ins = split(lines[ip], " ");
-			if (ins[0] == "nop") {
-				++ip;
-				continue;
-			}
-			if (ins[0] == "acc") {
-				acc += stol(ins[1]);
-				++ip;
-				continue;
-			}
-			if (ins[0] == "jmp") {
-				ip += stol(ins[1]);
-				continue;
-			}
-		}
-		if (ip == lines.size()) {
+		comp.execute(condition);
+		if (ip == program.size()) {
 			report(acc);
 			break;
-		}
-		if (ins[0] == "nop") {
-			lines[i] = "nop " + ins[1];
-		} else if (ins[0] == "jmp") {
-			lines[i] = "jmp " + ins[1];
-		}
-		else {
-			continue;
 		}
 	}
 }
@@ -751,5 +725,5 @@ void day9() {
 }
 
 int main() {
-	day8();
+	day9();
 }
