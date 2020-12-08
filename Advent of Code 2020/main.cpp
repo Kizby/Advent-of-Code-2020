@@ -629,14 +629,14 @@ public:
 private:
 	deque<T> data;
 };
-
-int64_t count(const string &name, map<string, map<string, int>>& rules, map<string, int64_t> &counts) {
+/*
+int64_t count_day7(const string &name, map<string, map<string, int>>& rules, map<string, int64_t> &counts) {
 	if (counts[name] > -1) {
 		return counts[name];
 	}
 	int64_t result = 0;
 	for (auto entry : rules[name]) {
-		result += (count(entry.first, rules, counts) + 1) * entry.second;
+		result += (count_day7(entry.first, rules, counts) + 1) * entry.second;
 	}
 	counts[name] = result;
 	return result;
@@ -673,8 +673,8 @@ void day7() {
 	for (auto entry : rules) {
 		counts[entry.first] = -1;
 	}
-	report(count("shiny gold", rules, counts));
-}
+	report(count_day7("shiny gold", rules, counts));
+}*/
 
 void day8() {
 	auto in = input("8");
