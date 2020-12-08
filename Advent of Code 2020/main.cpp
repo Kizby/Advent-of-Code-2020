@@ -678,6 +678,73 @@ void day7() {
 
 void day8() {
 	auto in = input("8");
+	auto lines = split(slurp(in));
+	size_t ip = 0;
+	set<size_t> seen;
+	int64_t acc = 0;
+	while (seen.insert(ip).second) {
+		auto ins = split(lines[ip]," ");
+		if (ins[0] == "nop") {
+			++ip;
+			continue;
+		}
+		if (ins[0] == "acc") {
+			acc += stol(ins[1]);
+			++ip;
+			continue;
+		}
+		if (ins[0] == "jmp") {
+			ip += stol(ins[1]);
+			continue;
+		}
+	}
+	report(acc);
+	for (size_t i = 0; i < lines.size(); ++i) {
+		auto ins = split(lines[i], " ");
+		if (ins[0] == "nop") {
+			lines[i] = "jmp " + ins[1];
+		} else if (ins[0] == "jmp") {
+			lines[i] = "nop " + ins[1];
+		}
+		else {
+			continue;
+		}
+		seen.clear();
+		ip = 0;
+		acc = 0;
+		while (seen.insert(ip).second && ip < lines.size()) {
+			auto ins = split(lines[ip], " ");
+			if (ins[0] == "nop") {
+				++ip;
+				continue;
+			}
+			if (ins[0] == "acc") {
+				acc += stol(ins[1]);
+				++ip;
+				continue;
+			}
+			if (ins[0] == "jmp") {
+				ip += stol(ins[1]);
+				continue;
+			}
+		}
+		if (ip == lines.size()) {
+			report(acc);
+			break;
+		}
+		if (ins[0] == "nop") {
+			lines[i] = "nop " + ins[1];
+		} else if (ins[0] == "jmp") {
+			lines[i] = "jmp " + ins[1];
+		}
+		else {
+			continue;
+		}
+	}
+}
+
+void day9() {
+	auto in = input("9");
 	for (const auto& line : split(slurp(in))) {
 
 	}
