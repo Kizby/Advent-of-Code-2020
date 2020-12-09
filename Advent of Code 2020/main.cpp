@@ -757,6 +757,13 @@ void day9() {
 	}
 }
 
+void day10() {
+	auto in = input("10");
+	for (const auto& line : split(slurp(in))) {
+
+	}
+}
+
 int main() {
-	day9();
+	day10();
 }
