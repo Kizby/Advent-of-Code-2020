@@ -716,44 +716,86 @@ void day8() {
 		}
 	}
 }*/
+
+template<typename T>
+vector<T> find_subset(const vector<T>& universe, size_t k, function<bool(vector<T>)> pred, size_t start = 0, size_t end = universe.size(), vector<T> prefix = {}) {
+	for (size_t i = start; i < end; ++i) {
+		vector<T> next{ prefix };
+		next.push_back(universe[i]);
+		if (k == 1) {
+			if (pred(next)) {
+				return next;
+			}
+		}
+		else {
+			auto result = find_subset(universe, k - 1, pred, start, i, next);
+			if (!result.empty()) {
+				return result;
+			}
+		}
+	}
+	return {};
+}
+
+template<typename T>
+vector<size_t> find_subseq(const vector<T>& universe, function<bool(vector<T>)> pred, size_t start = 0, size_t end = MAXSIZE_T) {
+	if (end > universe.size()) {
+		end = universe.size();
+	}
+	for (size_t i = start; i < end - 1; ++i) {
+		vector<T> next;
+		for (size_t j = i; j < end; ++j) {
+			next.push_back(universe[j]);
+			if (pred(next)) {
+				return { i, j };
+			}
+		}
+	}
+	return {};
+}
+
+template<typename T>
+T min(const vector<T>& universe, size_t start = 0, size_t end = MAXSIZE_T) {
+	if (end > universe.size()) {
+		end = universe.size();
+	}
+	T result = universe[start];
+	for (size_t i = start + 1; i < end; ++i) {
+		if (universe[i] < result) {
+			result = universe[i];
+		}
+	}
+	return result;
+}
+
+template<typename T>
+T max(const vector<T>& universe, size_t start = 0, size_t end = MAXSIZE_T) {
+	if (end > universe.size()) {
+		end = universe.size();
+	}
+	T result = universe[start];
+	for (size_t i = start + 1; i < end; ++i) {
+		if (universe[i] > result) {
+			result = universe[i];
+		}
+	}
+	return result;
+}
 /*
 void day9() {
 	auto in = input("9");
 	vector<int64_t> nums = map_to_num(split(slurp(in)));
 	int64_t target = 0;
 	for (size_t i = 25; i < nums.size(); ++i) {
-		bool found_one = false;
-		for (size_t j = i - 25; !found_one && j < i; ++j) {
-			for (size_t k = j < 25 ? 0 : j - 25; !found_one && k < j; ++k) {
-				if (nums[j] + nums[k] == nums[i]) {
-					found_one = true;
-				}
-			}
-		}
-		if (!found_one) {
+		auto pair = find_subset<int64_t>(nums, 2, [&](vector<int64_t> pair) { return sum(pair) == nums[i]; }, i - 25, i);
+		if (pair.empty()) {
 			report(nums[i]);
 			target = nums[i];
 			break;
 		}
 	}
-	for (size_t i = 0; i < nums.size(); ++i) {
-		int64_t accum = nums[i];
-		int64_t min = accum, max = accum;
-		size_t j;
-		for (j = i + 1; accum < target; ++j) {
-			accum += nums[j];
-			if (nums[j] < min) {
-				min = nums[j];
-			}
-			if (nums[j] > max) {
-				max = nums[j];
-			}
-		}
-		if (accum == target) {
-			report(min + max);
-			break;
-		}
-	}
+	auto bounds = find_subseq<int64_t>(nums, [&](vector<int64_t> seq) {return sum(seq) == target; });
+	report(min(nums, bounds[0], bounds[1]) + max(nums, bounds[0], bounds[1]));
 }
 */
 void day10() {
