@@ -685,7 +685,7 @@ unordered_map<string, function<void(computer&, const vector<string>&)>> computer
 	{ "acc", [](computer& self, const vector<string>& args) {self.acc += stoll(args[1]); } },
 	{ "jmp", [](computer& self, const vector<string>& args) {self.ip += stoll(args[1]) - 1; }},
 };
-
+/*
 void day8() {
 	auto in = input("8");
 	const auto lines = split(slurp(in));
@@ -715,7 +715,7 @@ void day8() {
 			break;
 		}
 	}
-}
+}*/
 
 void day9() {
 	auto in = input("9");
