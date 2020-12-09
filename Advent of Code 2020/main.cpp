@@ -719,8 +719,41 @@ void day8() {
 
 void day9() {
 	auto in = input("9");
-	for (const auto& line : split(slurp(in))) {
-
+	vector<int64_t> nums = map_to_num(split(slurp(in)));
+	int64_t target = 0;
+	for (size_t i = 25; i < nums.size(); ++i) {
+		bool found_one = false;
+		for (size_t j = i < 25 ? 0 : i - 25; !found_one && j < i; ++j) {
+			for (size_t k = j < 25 ? 0 : j - 25; !found_one && k < j; ++k) {
+				if (nums[j] + nums[k] == nums[i]) {
+					found_one = true;
+					//cout << i << " = " << j << " + " << k << endl;
+				}
+			}
+		}
+		if (!found_one) {
+			report(nums[i]);
+			target = nums[i];
+			break;
+		}
+	}
+	for (size_t i = 0; i < nums.size(); ++i) {
+		int64_t accum = nums[i];
+		int64_t min = accum, max = accum;
+		size_t j;
+		for (j = i + 1; accum < target; ++j) {
+			accum += nums[j];
+			if (nums[j] < min) {
+				min = nums[j];
+			}
+			if (nums[j] > max) {
+				max = nums[j];
+			}
+		}
+		if (accum == target) {
+			report(min + max);
+			break;
+		}
 	}
 }
 
