@@ -723,11 +723,10 @@ void day9() {
 	int64_t target = 0;
 	for (size_t i = 25; i < nums.size(); ++i) {
 		bool found_one = false;
-		for (size_t j = i < 25 ? 0 : i - 25; !found_one && j < i; ++j) {
+		for (size_t j = i - 25; !found_one && j < i; ++j) {
 			for (size_t k = j < 25 ? 0 : j - 25; !found_one && k < j; ++k) {
 				if (nums[j] + nums[k] == nums[i]) {
 					found_one = true;
-					//cout << i << " = " << j << " + " << k << endl;
 				}
 			}
 		}
