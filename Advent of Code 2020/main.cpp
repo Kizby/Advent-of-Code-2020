@@ -716,7 +716,7 @@ void day8() {
 		}
 	}
 }*/
-
+/*
 void day9() {
 	auto in = input("9");
 	vector<int64_t> nums = map_to_num(split(slurp(in)));
@@ -755,7 +755,7 @@ void day9() {
 		}
 	}
 }
-
+*/
 void day10() {
 	auto in = input("10");
 	for (const auto& line : split(slurp(in))) {
