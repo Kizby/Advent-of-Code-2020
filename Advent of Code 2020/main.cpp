@@ -798,35 +798,16 @@ void day9() {
 	report(min(nums, bounds[0], bounds[1]) + max(nums, bounds[0], bounds[1]));
 }
 */
-int64_t calculate(const set<int64_t>& nums, int64_t floor, map<int64_t, int64_t>& cache) {
-	if (cache[floor] == 0) {
-		int64_t result = 0;
-		bool reached_top = true;
-		for (auto n : nums) {
-			if (n <= floor) {
-				continue;
-			}
-			if (n <= floor + 3) {
-				result += calculate(nums, n, cache);
-			}
-			else {
-				reached_top = false;
-				break;
-			}
-		}
-		cache[floor] = reached_top ? 1 : result;
-		cout << floor << ": " << cache[floor] << endl;
-	}
-	return cache[floor];
-}
 
 void day10() {
 	auto in = input("10");
 	auto nums = map_to_num(split(slurp(in)));
 	auto max_jolts = max(nums);
 	set<int64_t> sorted = set<int64_t>{ nums.begin(), nums.end() };
+	sorted.insert(0);
 	sorted.insert(max_jolts + 3);
 	int64_t last = 0;
+	map<int64_t, int64_t> counts{ {0, 1} };
 	auto ones = 0, threes = 0;
 	for (auto n : sorted) {
 		if (n - last == 1) {
@@ -836,10 +817,12 @@ void day10() {
 			++threes;
 		}
 		last = n;
+		for (int i = 1; i <= 3; ++i) {
+			counts[n] += counts[n - i];
+		}
 	}
 	report(ones * threes);
-	auto cached = map<int64_t, int64_t>{};
-	report(calculate(sorted, 0, cached));
+	report(counts[max_jolts + 3]);
 }
 
 int main() {
