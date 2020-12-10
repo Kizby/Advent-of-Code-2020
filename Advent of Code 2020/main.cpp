@@ -316,7 +316,7 @@ void day3() {
 	report(counts[1]);
 	report(product(counts));
 }*/
-
+/*
 unordered_map<string, string> process_batch(vector<string> lines) {
 	unordered_map<string, string> result;
 	for (const auto& line : lines) {
@@ -325,7 +325,7 @@ unordered_map<string, string> process_batch(vector<string> lines) {
 		}
 	}
 	return result;
-}
+}*/
 
 bool in_range(const string& s, int64_t min, int64_t max) {
 	size_t end = 0;
@@ -798,11 +798,48 @@ void day9() {
 	report(min(nums, bounds[0], bounds[1]) + max(nums, bounds[0], bounds[1]));
 }
 */
+int64_t calculate(const set<int64_t>& nums, int64_t floor, map<int64_t, int64_t>& cache) {
+	if (cache[floor] == 0) {
+		int64_t result = 0;
+		bool reached_top = true;
+		for (auto n : nums) {
+			if (n <= floor) {
+				continue;
+			}
+			if (n <= floor + 3) {
+				result += calculate(nums, n, cache);
+			}
+			else {
+				reached_top = false;
+				break;
+			}
+		}
+		cache[floor] = reached_top ? 1 : result;
+		cout << floor << ": " << cache[floor] << endl;
+	}
+	return cache[floor];
+}
+
 void day10() {
 	auto in = input("10");
-	for (const auto& line : split(slurp(in))) {
-
+	auto nums = map_to_num(split(slurp(in)));
+	auto max_jolts = max(nums);
+	set<int64_t> sorted = set<int64_t>{ nums.begin(), nums.end() };
+	sorted.insert(max_jolts + 3);
+	int64_t last = 0;
+	auto ones = 0, threes = 0;
+	for (auto n : sorted) {
+		if (n - last == 1) {
+			++ones;
+		}
+		else if (n - last == 3) {
+			++threes;
+		}
+		last = n;
 	}
+	report(ones * threes);
+	auto cached = map<int64_t, int64_t>{};
+	report(calculate(sorted, 0, cached));
 }
 
 int main() {
