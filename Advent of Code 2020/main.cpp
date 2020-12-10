@@ -798,7 +798,7 @@ void day9() {
 	report(min(nums, bounds[0], bounds[1]) + max(nums, bounds[0], bounds[1]));
 }
 */
-
+/*
 void day10() {
 	auto in = input("10");
 	auto nums = map_to_num(split(slurp(in)));
@@ -823,8 +823,15 @@ void day10() {
 	}
 	report(ones * threes);
 	report(counts[max_jolts + 3]);
+}*/
+
+void day11() {
+	auto in = input("11");
+	for (const auto& line : split(slurp(in))) {
+
+	}
 }
 
 int main() {
-	day10();
+	day11();
 }
