@@ -981,7 +981,7 @@ private:
 	const T& container;
 	size_t index = 0;
 };
-
+/*
 bool day11_step(vector<string>& lines, bool skip_empty) {
 	vector<string> next;
 	bool any_changed = false;
@@ -1038,8 +1038,15 @@ void day11() {
 
 	while (day11_step(lines2, true));
 	report(count<2, vector<string>, char>(lines2, '#'));
+}*/
+
+void day12() {
+	auto in = input("12");
+	for (const auto& line : split(slurp(in))) {
+
+	}
 }
 
 int main() {
-	day11();
+	day12();
 }
