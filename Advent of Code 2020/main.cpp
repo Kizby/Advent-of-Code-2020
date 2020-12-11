@@ -825,20 +825,60 @@ void day10() {
 	report(counts[max_jolts + 3]);
 }*/
 
-static vector<vector<int>> dirs{
-	{-1, -1},
-	{-1, 0},
-	{-1, 1},
-	{0, -1},
-	{0, 1},
-	{1, -1},
-	{1, 0},
-	{1, 1},
+// N-dimensional direction vectors
+static vector<vector<vector<int>>> dirs{
+	{{}},
+	{{-1},
+	 {1}},
+	{{-1, -1},
+	 {-1, 0},
+	 {-1, 1},
+	 {0, -1},
+	 {0, 1},
+	 {1, -1},
+	 {1, 0},
+	 {1, 1}},
+	{{-1, -1, -1},
+	 {-1, -1, 0},
+	 {-1, -1, 1},
+	 {-1, 0, -1},
+	 {-1, 0, 0},
+	 {-1, 0, 1},
+	 {-1, 1, -1},
+	 {-1, 1, 0},
+	 {-1, 1, 1},
+	 {0, -1, -1},
+	 {0, -1, 0},
+	 {0, -1, 1},
+	 {0, 0, -1},
+	 {0, 0, 1},
+	 {0, 1, -1},
+	 {0, 1, 0},
+	 {0, 1, 1},
+	 {1, -1, -1},
+	 {1, -1, 0},
+	 {1, -1, 1},
+	 {1, 0, -1},
+	 {1, 0, 0},
+	 {1, 0, 1},
+	 {1, 1, -1},
+	 {1, 1, 0},
+	 {1, 1, 1}},
 };
 
+template<size_t N, typename T>
+bool valid(const T& vec, const vector<size_t>& index) {
+	if constexpr (N == 0) {
+		return true;
+	}
+	else {
+		return (index[index.size() - N] < vec.size() && valid<N - 1>(vec[index[index.size() - N]], index));
+	}
+}
+
 template<typename T>
-bool valid(const T& vec, ssize_t index) {
-	return index >= 0 && (size_t)index < vec.size();
+bool valid(const T& vec, size_t index) {
+	return index < vec.size();
 }
 
 template<size_t N, typename C, typename T>
@@ -860,50 +900,130 @@ size_t count(const C& container, const T& what) {
 	return count<N, C, T>(container, [&what](T one) { return one == what; });
 }
 
-char look(vector<string>& lines, size_t i, size_t j, const vector<int> &dir, bool skip_empty) {
-	ssize_t row = i, col = j;
-	do {
-		row += dir[0];
-		col += dir[1];
-		if (!valid(lines, row) || !valid(lines[row], col)) {
-			return '.';
+template<size_t N, typename C>
+size_t count(const C& container) {
+	if constexpr (N == 1) {
+		return container.size();
+	}
+	else {
+		size_t result = 0;
+		for (const auto& one : container) {
+			result += count<N - 1>(one);
 		}
-	} while (skip_empty && lines[row][col] == '.');
-	return lines[row][col];
+		return result;
+	}
 }
 
-bool step(vector<string>& lines, bool skip_empty) {
+template<size_t N, typename T, typename C>
+T& at(C& container, const vector<size_t>& index) {
+	if constexpr (N == 1) {
+		return container[index[index.size() - 1]];
+	}
+	else {
+		return at<N - 1, T>(container[index[index.size() - N]], index);
+	}
+}
+
+char& at(vector<string>& s, const vector<size_t>& index) {
+	return at<2, char, vector<string>>(s, index);
+}
+
+template<size_t N, typename C>
+vector<size_t> parse_index(const C& container, size_t index) {
+	if constexpr (N == 1) {
+		return { index };
+	}
+	else {
+		size_t cur = index % container.size();
+		vector<size_t> result = parse_index<N - 1>(container[cur], index / container.size());
+		result.insert(result.begin(), cur);
+		return result;
+	}
+}
+
+template<size_t N, typename C, typename T>
+T& look(C& container, vector<size_t> pos, const vector<int> &dir, function<bool(T)> predicate, T& empty) {
+	do {
+		for (size_t i = 0; i < pos.size(); ++i) {
+			pos[i] += dir[i];
+		}
+		if (!valid<N>(container, pos)) {
+			return empty;
+		}
+	} while (!predicate(at(container, pos)));
+	return at(container, pos);
+}
+
+template<size_t N, typename T>
+class indices {
+public:
+	indices(const T& container) : container(container) { }
+
+	indices begin() {
+		return *this;
+	}
+	indices end() {
+		return indices(container, count<N>(container));
+	}
+	indices operator++() {
+		++index;
+		return *this;
+	}
+	vector<size_t> operator*() {
+		return parse_index<N>(container, index);
+	}
+	bool operator!=(const indices& other) {
+		return container != other.container || index != other.index;
+	}
+private:
+	indices(const T& container, size_t index) : container(container), index(index) { }
+
+	const T& container;
+	size_t index = 0;
+};
+
+bool day11_step(vector<string>& lines, bool skip_empty) {
 	vector<string> next;
 	bool any_changed = false;
-	for (size_t i = 0; i < lines.size(); ++i) {
-		string line = "";
-		for (size_t j = 0; j < lines[i].size(); ++j) {
-			bool changed = false;
-			if (lines[i][j] != '.') {
-				int count = 0;
-				for (auto dir : dirs) {
-					if (look(lines, i, j, dir, skip_empty) == '#') {
-						++count;
-					}
-				}
-				if (lines[i][j] == 'L' && 0 == count) {
-					line += '#';
-					changed = true;
-				}
-				else if (lines[i][j] == '#' && count >= (skip_empty ? 5 : 4)) {
-					line += 'L';
-					changed = true;
+	string line = "";
+	char empty = '.';
+	function<bool(char)> predicate;
+	if (skip_empty) {
+		predicate = [](char c) { return c != '.'; };
+	}
+	else {
+		predicate = [](char) { return true; };
+	}
+	for (auto index : indices<2, vector<string>>(lines)) {
+		if (index[1] != 0 && index[0] == 0) {
+			next.push_back(line);
+			line = "";
+		}
+		bool changed = false;
+		if (at(lines, index) != '.') {
+			int count = 0;
+			for (auto dir : dirs[2]) {
+				if (look<2>(lines, index, dir, predicate, empty) == '#') {
+					++count;
 				}
 			}
-			if (!changed) {
-				line += lines[i][j];
+			if (at(lines, index) == 'L' && 0 == count) {
+				line += '#';
+				changed = true;
 			}
-			else {
-				any_changed = true;
+			else if (at(lines, index) == '#' && count >= (skip_empty ? 5 : 4)) {
+				line += 'L';
+				changed = true;
 			}
 		}
-		next.push_back(line);
+		if (!changed) {
+			line += at(lines, index);
+		}
+		else {
+			any_changed = true;
+		}
 	}
+	next.push_back(line);
 	lines = next;
 	return any_changed;
 }
@@ -913,10 +1033,10 @@ void day11() {
 	auto lines = split(slurp(in));
 	auto lines2 = lines;
 
-	while (step(lines, false));
+	while (day11_step(lines, false));
 	report(count<2, vector<string>, char>(lines, '#'));
 
-	while (step(lines2, true));
+	while (day11_step(lines2, true));
 	report(count<2, vector<string>, char>(lines2, '#'));
 }
 
