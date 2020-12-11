@@ -825,111 +825,72 @@ void day10() {
 	report(counts[max_jolts + 3]);
 }*/
 
-bool step(vector<string>& lines) {
-	vector<string> next;
-	bool any_changed = false;
-	for (size_t i = 0; i < lines.size(); ++i) {
-		string line = "";
-		for (size_t j = 0; j < lines[i].size(); ++j) {
-			bool changed = false;
-			if (lines[i][j] == 'L') {
-				bool all_empty = true;
-				for (int k = (i == 0 ? 0 : -1); all_empty && k <= 1 && i + k < lines.size(); ++k) {
-					for (int l = (j == 0 ? 0 : -1); l <= 1 && j + l < lines[i].size(); ++l) {
-						if (k == 0 && l == 0) {
-							continue;
-						}
-						if (lines[i + k][j + l] == '#') {
-							all_empty = false;
-							break;
-						}
-					}
-				}
-				if (all_empty) {
-					line += '#';
-					changed = true;
-				}
-			}
-			else if (lines[i][j] == '#') {
-				int count = 0;
-				for (int k = (i == 0 ? 0 : -1); k <= 1 && i + k < lines.size(); ++k) {
-					for (int l = (j == 0 ? 0 : -1); l <= 1 && j + l < lines[i + k].size(); ++l) {
-						if (k == 0 && l == 0) {
-							continue;
-						}
-						if (lines[i + k][j + l] == '#') {
-							++count;
-						}
-					}
-				}
-				if (count >= 4) {
-					line += 'L';
-					changed = true;
-				}
-			}
-			if (!changed) {
-				line += lines[i][j];
-			}
-			else {
-				any_changed = true;
-			}
-		}
-		next.push_back(line);
-	}
-	lines = next;
-	return any_changed;
+static vector<vector<int>> dirs{
+	{-1, -1},
+	{-1, 0},
+	{-1, 1},
+	{0, -1},
+	{0, 1},
+	{1, -1},
+	{1, 0},
+	{1, 1},
+};
+
+template<typename T>
+bool valid(const T& vec, ssize_t index) {
+	return index >= 0 && (size_t)index < vec.size();
 }
 
-char look(vector<string>& lines, size_t i, size_t j, int k, int l) {
-	int64_t row = (int64_t)i, col = (int64_t)j;
-	do {
-		row += k;
-		col += l;
-	} while (row >= 0 && row < (int)lines.size() && col >= 0 && col < (int)lines[row].size() && lines[row][col] == '.');
-	if (row < 0 || col < 0 || row >= (int)lines.size() || col >= (int)lines[row].size()) {
-		return '.';
+template<size_t N, typename C, typename T>
+size_t count(const C& container, function<bool(T)> predicate) {
+	size_t result = 0;
+	for (const auto& one : container) {
+		if constexpr (N > 1) {
+			result += count<N - 1>(one, predicate);
+		}
+		else if (predicate(one)){
+			++result;
+		}
 	}
+	return result;
+}
+
+template<size_t N, typename C, typename T>
+size_t count(const C& container, const T& what) {
+	return count<N, C, T>(container, [&what](T one) { return one == what; });
+}
+
+char look(vector<string>& lines, size_t i, size_t j, const vector<int> &dir, bool skip_empty) {
+	ssize_t row = i, col = j;
+	do {
+		row += dir[0];
+		col += dir[1];
+		if (!valid(lines, row) || !valid(lines[row], col)) {
+			return '.';
+		}
+	} while (skip_empty && lines[row][col] == '.');
 	return lines[row][col];
 }
 
-bool step2(vector<string>& lines) {
+bool step(vector<string>& lines, bool skip_empty) {
 	vector<string> next;
 	bool any_changed = false;
 	for (size_t i = 0; i < lines.size(); ++i) {
 		string line = "";
 		for (size_t j = 0; j < lines[i].size(); ++j) {
 			bool changed = false;
-			if (lines[i][j] == 'L') {
-				bool all_empty = true;
-				for (int k = (i == 0 ? 0 : -1); all_empty && k <= 1 && i + k < lines.size(); ++k) {
-					for (int l = (j == 0 ? 0 : -1); l <= 1 && j + l < lines[i].size(); ++l) {
-						if (k == 0 && l == 0) {
-							continue;
-						}
-						if (look(lines, i, j, k, l) == '#') {
-							all_empty = false;
-							break;
-						}
+			if (lines[i][j] != '.') {
+				int count = 0;
+				for (auto dir : dirs) {
+					if (look(lines, i, j, dir, skip_empty) == '#') {
+						++count;
 					}
 				}
-				if (all_empty) {
+				if (lines[i][j] == 'L' && 0 == count) {
 					line += '#';
 					changed = true;
 				}
-			}
-			else if (lines[i][j] == '#') {
-				int count = 0;
-				for (int k = (i == 0 ? 0 : -1); k <= 1 && i + k < lines.size(); ++k) {
-					for (int l = (j == 0 ? 0 : -1); l <= 1 && j + l < lines[i + k].size(); ++l) {
-						if (k == 0 && l == 0) {
-							continue;
-						}
-						if (look(lines, i, j, k, l) == '#') {
-							++count;
-						}
-					}
-				}
-				if (count >= 5) {
+				else if (lines[i][j] == '#' && count >= (skip_empty ? 5 : 4)) {
 					line += 'L';
 					changed = true;
 				}
@@ -951,26 +912,12 @@ void day11() {
 	auto in = input("11");
 	auto lines = split(slurp(in));
 	auto lines2 = lines;
-	while (step(lines));
-	int occupied = 0;
-	for (auto line : lines) {
-		for (auto c : line) {
-			if (c == '#') {
-				++occupied;
-			}
-		}
-	}
-	report(occupied);
-	while (step2(lines2));
-	occupied = 0;
-	for (auto line : lines2) {
-		for (auto c : line) {
-			if (c == '#') {
-				++occupied;
-			}
-		}
-	}
-	report(occupied);
+
+	while (step(lines, false));
+	report(count<2, vector<string>, char>(lines, '#'));
+
+	while (step(lines2, true));
+	report(count<2, vector<string>, char>(lines2, '#'));
 }
 
 int main() {
