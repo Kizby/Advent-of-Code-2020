@@ -825,11 +825,152 @@ void day10() {
 	report(counts[max_jolts + 3]);
 }*/
 
+bool step(vector<string>& lines) {
+	vector<string> next;
+	bool any_changed = false;
+	for (size_t i = 0; i < lines.size(); ++i) {
+		string line = "";
+		for (size_t j = 0; j < lines[i].size(); ++j) {
+			bool changed = false;
+			if (lines[i][j] == 'L') {
+				bool all_empty = true;
+				for (int k = (i == 0 ? 0 : -1); all_empty && k <= 1 && i + k < lines.size(); ++k) {
+					for (int l = (j == 0 ? 0 : -1); l <= 1 && j + l < lines[i].size(); ++l) {
+						if (k == 0 && l == 0) {
+							continue;
+						}
+						if (lines[i + k][j + l] == '#') {
+							all_empty = false;
+							break;
+						}
+					}
+				}
+				if (all_empty) {
+					line += '#';
+					changed = true;
+				}
+			}
+			else if (lines[i][j] == '#') {
+				int count = 0;
+				for (int k = (i == 0 ? 0 : -1); k <= 1 && i + k < lines.size(); ++k) {
+					for (int l = (j == 0 ? 0 : -1); l <= 1 && j + l < lines[i + k].size(); ++l) {
+						if (k == 0 && l == 0) {
+							continue;
+						}
+						if (lines[i + k][j + l] == '#') {
+							++count;
+						}
+					}
+				}
+				if (count >= 4) {
+					line += 'L';
+					changed = true;
+				}
+			}
+			if (!changed) {
+				line += lines[i][j];
+			}
+			else {
+				any_changed = true;
+			}
+		}
+		next.push_back(line);
+	}
+	lines = next;
+	return any_changed;
+}
+
+char look(vector<string>& lines, size_t i, size_t j, int k, int l) {
+	int64_t row = (int64_t)i, col = (int64_t)j;
+	do {
+		row += k;
+		col += l;
+	} while (row >= 0 && row < (int)lines.size() && col >= 0 && col < (int)lines[row].size() && lines[row][col] == '.');
+	if (row < 0 || col < 0 || row >= (int)lines.size() || col >= (int)lines[row].size()) {
+		return '.';
+	}
+	return lines[row][col];
+}
+
+bool step2(vector<string>& lines) {
+	vector<string> next;
+	bool any_changed = false;
+	for (size_t i = 0; i < lines.size(); ++i) {
+		string line = "";
+		for (size_t j = 0; j < lines[i].size(); ++j) {
+			bool changed = false;
+			if (lines[i][j] == 'L') {
+				bool all_empty = true;
+				for (int k = (i == 0 ? 0 : -1); all_empty && k <= 1 && i + k < lines.size(); ++k) {
+					for (int l = (j == 0 ? 0 : -1); l <= 1 && j + l < lines[i].size(); ++l) {
+						if (k == 0 && l == 0) {
+							continue;
+						}
+						if (look(lines, i, j, k, l) == '#') {
+							all_empty = false;
+							break;
+						}
+					}
+				}
+				if (all_empty) {
+					line += '#';
+					changed = true;
+				}
+			}
+			else if (lines[i][j] == '#') {
+				int count = 0;
+				for (int k = (i == 0 ? 0 : -1); k <= 1 && i + k < lines.size(); ++k) {
+					for (int l = (j == 0 ? 0 : -1); l <= 1 && j + l < lines[i + k].size(); ++l) {
+						if (k == 0 && l == 0) {
+							continue;
+						}
+						if (look(lines, i, j, k, l) == '#') {
+							++count;
+						}
+					}
+				}
+				if (count >= 5) {
+					line += 'L';
+					changed = true;
+				}
+			}
+			if (!changed) {
+				line += lines[i][j];
+			}
+			else {
+				any_changed = true;
+			}
+		}
+		next.push_back(line);
+	}
+	lines = next;
+	return any_changed;
+}
+
 void day11() {
 	auto in = input("11");
-	for (const auto& line : split(slurp(in))) {
-
+	auto lines = split(slurp(in));
+	auto lines2 = lines;
+	while (step(lines));
+	int occupied = 0;
+	for (auto line : lines) {
+		for (auto c : line) {
+			if (c == '#') {
+				++occupied;
+			}
+		}
 	}
+	report(occupied);
+	while (step2(lines2));
+	occupied = 0;
+	for (auto line : lines2) {
+		for (auto c : line) {
+			if (c == '#') {
+				++occupied;
+			}
+		}
+	}
+	report(occupied);
 }
 
 int main() {
